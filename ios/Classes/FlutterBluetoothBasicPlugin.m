@@ -118,6 +118,13 @@
            progress:^(NSUInteger total, NSUInteger progress) {
                // Log the progress (optional)
                NSLog(@"Write Progress: %lu/%lu", (unsigned long)progress, (unsigned long)total);
+               // If the progress reaches 100%, trigger the result callback
+              if (progress == total) {
+                  NSLog(@"Write Completed!");
+                  // This indicates the write operation is done
+                  // Pass the data to the callback function when 100% progress is reached
+                  result(@(YES)); // Return success if data is received
+              }
            }
        receCallBack:^(NSData * _Nullable data) {
            // Once the write is complete, check if we received any data

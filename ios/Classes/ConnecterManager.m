@@ -1,7 +1,5 @@
-//
 //  ConnecterManager.m
 //  GSDK
-//
 //
 
 #import "ConnecterManager.h"
@@ -74,10 +72,25 @@ static dispatch_once_t once;
     [_bleConnecter connectPeripheral:peripheral options:options];
 }
 
+/**
+ *  写数据的方法，带进度和回调
+ *  @param data 数据
+ *  @param progress 写入进度回调
+ *  @param receCallBack 接收到数据的回调
+ */
 -(void)write:(NSData *_Nullable)data progress:(void(^_Nullable)(NSUInteger total,NSUInteger progress))progress receCallBack:(void (^_Nullable)(NSData *_Nullable))callBack {
+    // Ensure the progress is set for the BLE connector
+    _bleConnecter.writeProgress = progress;
+    
+    // Call the write method on the underlying connector (this should trigger the progress block)
     [_bleConnecter write:data progress:progress receCallBack:callBack];
 }
 
+/**
+ *  写数据的方法，没有进度回调
+ *  @param data 数据
+ *  @param callBack 接收到数据的回调
+ */
 -(void)write:(NSData *)data receCallBack:(void (^)(NSData *))callBack {
 #ifdef DEBUG
     NSLog(@"[ConnecterManager] write:receCallBack:");
@@ -86,6 +99,10 @@ static dispatch_once_t once;
     [_connecter write:data receCallBack:callBack];
 }
 
+/**
+ *  写数据的方法，没有进度和回调
+ *  @param data 数据
+ */
 -(void)write:(NSData *)data {
 #ifdef DEBUG
     NSLog(@"[ConnecterManager] write:");
