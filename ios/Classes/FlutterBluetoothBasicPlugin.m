@@ -97,25 +97,49 @@
     }
   } else if([@"writeData" isEqualToString:call.method]) {
        @try {
-           NSDictionary *args = [call arguments];
-           
-           NSMutableArray *bytes = [args objectForKey:@"bytes"];
+    // Get the arguments passed from Flutter
+    NSDictionary *args = [call arguments];
+    
+    NSMutableArray *bytes = [args objectForKey:@"bytes"];
+    NSNumber *lenBuf = [args objectForKey:@"length"];
+    int len = [lenBuf intValue];
+    char cArray[len];
+    
+    // Convert the byte values into a C array
+    for (int i = 0; i < len; ++i) {
+        cArray[i] = [bytes[i] charValue];
+    }
+    
+    // Create NSData from the C array
+    NSData *dataToWrite = [NSData dataWithBytes:cArray length:sizeof(cArray)];
 
-           NSNumber* lenBuf = [args objectForKey:@"length"];
-           int len = [lenBuf intValue];
-           char cArray[len];
-
-           for (int i = 0; i < len; ++i) {
-//               NSLog(@"** ind_%d (d): %@, %d", i, bytes[i], [bytes[i] charValue]);
-               cArray[i] = [bytes[i] charValue];
+    // Call the write method with progress and completion callback
+    [Manager write:dataToWrite
+           progress:^(NSUInteger total, NSUInteger progress) {
+               // Log the progress (optional)
+               NSLog(@"Write Progress: %lu/%lu", (unsigned long)progress, (unsigned long)total);
            }
-           NSData *data2 = [NSData dataWithBytes:cArray length:sizeof(cArray)];
-//           NSLog(@"bytes in hex: %@", [data2 description]);
-           [Manager write:data2];
-           result(nil);
-       } @catch(FlutterError *e) {
-           result(e);
-       }
+       receCallBack:^(NSData * _Nullable data) {
+           // Once the write is complete, check if we received any data
+           if (data) {
+               result(@(YES)); // Return success if data is received
+           } else {
+               // If no data received, return an error
+               result([FlutterError errorWithCode:@"WRITE_FAILED"
+                                         message:@"No data received after write"
+                                         details:nil]);
+           }
+       }];
+    
+} @catch (FlutterError *e) {
+    // Handle FlutterError
+    result(e);
+} @catch (NSException *e) {
+    // Handle general exceptions
+    result([FlutterError errorWithCode:@"UNEXPECTED_ERROR"
+                              message:e.reason
+                              details:nil]);
+}
   }
 }
 
@@ -165,6 +189,8 @@
         }
     });
 }
+
+
 
 @end
 

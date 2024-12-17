@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({required this.title});
   final String title;
 
   @override
@@ -31,7 +31,7 @@ class _MyHomePageState extends State<MyHomePage> {
   BluetoothManager bluetoothManager = BluetoothManager.instance;
 
   bool _connected = false;
-  BluetoothDevice _device;
+  late BluetoothDevice _device;
   String tips = 'no device connect';
 
   @override
@@ -129,10 +129,10 @@ class _MyHomePageState extends State<MyHomePage> {
                 stream: bluetoothManager.scanResults,
                 initialData: [],
                 builder: (c, snapshot) => Column(
-                  children: snapshot.data
+                  children: snapshot.data!
                       .map((d) => ListTile(
                             title: Text(d.name ?? ''),
-                            subtitle: Text(d.address),
+                            subtitle: Text("${d.address}"),
                             onTap: () async {
                               setState(() {
                                 _device = d;
@@ -157,20 +157,20 @@ class _MyHomePageState extends State<MyHomePage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
-                        OutlineButton(
+                        InkWell(
                           child: Text('connect'),
-                          onPressed: _connected ? null : _onConnect,
+                          onTap: _connected ? null : _onConnect,
                         ),
                         SizedBox(width: 10.0),
-                        OutlineButton(
+                        InkWell(
                           child: Text('disconnect'),
-                          onPressed: _connected ? _onDisconnect : null,
+                          onTap: _connected ? _onDisconnect : null,
                         ),
                       ],
                     ),
-                    OutlineButton(
+                    InkWell(
                       child: Text('Send test data'),
-                      onPressed: _connected ? _sendData : null,
+                      onTap: _connected ? _sendData : null,
                     ),
                   ],
                 ),
@@ -183,7 +183,7 @@ class _MyHomePageState extends State<MyHomePage> {
         stream: bluetoothManager.isScanning,
         initialData: false,
         builder: (c, snapshot) {
-          if (snapshot.data) {
+          if (snapshot.data == true) {
             return FloatingActionButton(
               child: Icon(Icons.stop),
               onPressed: () => bluetoothManager.stopScan(),
