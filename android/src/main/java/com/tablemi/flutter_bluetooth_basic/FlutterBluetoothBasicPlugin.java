@@ -33,6 +33,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 /** FlutterBluetoothBasicPlugin */
 public class FlutterBluetoothBasicPlugin implements MethodCallHandler, RequestPermissionsResultListener {
   private static final String TAG = "BluetoothBasicPlugin";
@@ -247,8 +251,13 @@ public class FlutterBluetoothBasicPlugin implements MethodCallHandler, RequestPe
   private boolean disconnect(){
 
     if(DeviceConnFactoryManager.getDeviceConnFactoryManagers()[id]!=null&&DeviceConnFactoryManager.getDeviceConnFactoryManagers()[id].mPort!=null) {
-      DeviceConnFactoryManager.getDeviceConnFactoryManagers()[id].reader.cancel();
-      DeviceConnFactoryManager.getDeviceConnFactoryManagers()[id].mPort.closePort();
+      if( DeviceConnFactoryManager.getDeviceConnFactoryManagers()[id].reader!=null){
+         DeviceConnFactoryManager.getDeviceConnFactoryManagers()[id].reader.cancel();
+      }
+      if(DeviceConnFactoryManager.getDeviceConnFactoryManagers()[id].mPort!=null){
+        DeviceConnFactoryManager.getDeviceConnFactoryManagers()[id].mPort.closePort();
+      }
+
       DeviceConnFactoryManager.getDeviceConnFactoryManagers()[id].mPort=null;
     }
     return true;
@@ -265,27 +274,43 @@ public class FlutterBluetoothBasicPlugin implements MethodCallHandler, RequestPe
 
   @SuppressWarnings("unchecked")
   private void writeData(Result result, Map<String, Object> args) {
-   if (args.containsKey("bytes")) {
-        final ArrayList<Integer> bytes = (ArrayList<Integer>)args.get("bytes");
+    if (args.containsKey("bytes")) {
+        final ArrayList<Integer> bytes = (ArrayList<Integer>) args.get("bytes");
 
+        // ThreadPool for task execution
         threadPool = ThreadPool.getInstantiation();
+        
+        // CountDownLatch to wait for task completion
+        CountDownLatch latch = new CountDownLatch(1);
+
         threadPool.addSerialTask(new Runnable() {
             @Override
             public void run() {
                 try {
                     Vector<Byte> vectorData = new Vector<>();
-                    for(int i = 0; i < bytes.size(); ++i) {
+                    for (int i = 0; i < bytes.size(); ++i) {
                         Integer val = bytes.get(i);
-                        vectorData.add(Byte.valueOf(Integer.toString(val > 127 ? val-256 : val)));
+                        vectorData.add(Byte.valueOf(Integer.toString(val > 127 ? val - 256 : val)));
                     }
 
+                    // Simulate sending data
                     DeviceConnFactoryManager.getDeviceConnFactoryManagers()[id].sendDataImmediately(vectorData);
-                    result.success(null);
-                } catch (Exception e) {
-                    result.error("write_error", e.getMessage(), null);
+                } finally {
+                    // Ensure latch is counted down even if an exception occurs
+                    latch.countDown();
                 }
             }
         });
+
+        try {
+            // Wait for the task to complete
+            latch.await();
+            // Task completed, return success
+            result.success("Task completed successfully");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            result.error("task_interrupted", "Task was interrupted", e);
+        }
     } else {
         result.error("bytes_empty", "Bytes param is empty", null);
     }
