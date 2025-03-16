@@ -248,20 +248,37 @@ public class FlutterBluetoothBasicPlugin implements MethodCallHandler, RequestPe
   /**
    * Reconnect to recycle the last connected object to avoid memory leaks
    */
-  private boolean disconnect(){
-
-    if(DeviceConnFactoryManager.getDeviceConnFactoryManagers()[id]!=null&&DeviceConnFactoryManager.getDeviceConnFactoryManagers()[id].mPort!=null) {
-      if( DeviceConnFactoryManager.getDeviceConnFactoryManagers()[id].reader!=null){
-         DeviceConnFactoryManager.getDeviceConnFactoryManagers()[id].reader.cancel();
-      }
-      if(DeviceConnFactoryManager.getDeviceConnFactoryManagers()[id].mPort!=null){
-        DeviceConnFactoryManager.getDeviceConnFactoryManagers()[id].mPort.closePort();
-      }
-
-      DeviceConnFactoryManager.getDeviceConnFactoryManagers()[id].mPort=null;
+ private boolean disconnect() {
+    try {
+        if (DeviceConnFactoryManager.getDeviceConnFactoryManagers() != null) {
+            if (id >= 0 && id < DeviceConnFactoryManager.getDeviceConnFactoryManagers().length) {
+                DeviceConnFactoryManager manager = DeviceConnFactoryManager.getDeviceConnFactoryManagers()[id];
+                
+                if (manager != null) {
+                    if (manager.reader != null) {
+                        try {
+                            manager.reader.cancel();
+                        } catch (Exception e) {
+                            Log.e(TAG, "Error canceling reader: " + e.getMessage());
+                        }
+                    }
+                    
+                    if (manager.mPort != null) {
+                        try {
+                            manager.mPort.closePort();
+                        } catch (Exception e) {
+                            Log.e(TAG, "Error closing port: " + e.getMessage());
+                        }
+                        manager.mPort = null;
+                    }
+                }
+            }
+        }
+    } catch (Exception e) {
+        Log.e(TAG, "Error in disconnect: " + e.getMessage());
     }
     return true;
-  }
+}
 
   private boolean destroy() {
     DeviceConnFactoryManager.closeAllPort();
