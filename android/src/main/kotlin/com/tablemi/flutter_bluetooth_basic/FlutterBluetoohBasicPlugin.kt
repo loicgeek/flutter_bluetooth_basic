@@ -1,6 +1,5 @@
 package com.tablemi.flutter_bluetooth_basic
 
-// This file is used by the Flutter tool to generate GeneratedPluginRegistrant.java
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.PluginRegistry.Registrar
 
@@ -19,12 +18,12 @@ class FlutterBluetoothBasicPlugin: FlutterPlugin {
   }
 
   override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-    // The FlutterBluetoothBasicPlugin implementation already takes care of
-    // initializing the plugin for both V1 and V2 embeddings
-    com.tablemi.flutter_bluetooth_basic.FlutterBluetoothBasicPlugin().onAttachedToEngine(binding)
+    // Create a new instance of the plugin and attach it to the engine
+    val plugin = com.tablemi.flutter_bluetooth_basic.FlutterBluetoothBasicPlugin()
+    plugin.onAttachedToEngine(binding)
   }
 
   override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-    // No need to do anything here, the Java implementation will handle cleanup
+    // No additional teardown needed
   }
 }
