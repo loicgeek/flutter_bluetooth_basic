@@ -1,11 +1,11 @@
-// Define the group and version
-group 'com.tablemi.flutter_bluetooth_basic'
-version '1.0'
-
-// Use new plugins DSL
+// Use new plugins DSL first
 plugins {
     id 'com.android.library'
 }
+
+// Define the group and version after plugins block
+group 'com.tablemi.flutter_bluetooth_basic'
+version '1.0'
 
 // The Android configuration
 android {
