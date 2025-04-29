@@ -1,38 +1,41 @@
+// Define the group and version
 group 'com.tablemi.flutter_bluetooth_basic'
 version '1.0'
 
-buildscript {
-    repositories {
-        google()
-        jcenter()
-    }
-
-    dependencies {
-        classpath 'com.android.tools.build:gradle:3.5.0'
-    }
+// Use new plugins DSL
+plugins {
+    id 'com.android.library'
 }
 
-rootProject.allprojects {
-    repositories {
-        google()
-        jcenter()
-    }
-}
-
-apply plugin: 'com.android.library'
-
+// The Android configuration
 android {
-    compileSdkVersion 28
-
+    namespace 'com.tablemi.flutter_bluetooth_basic'
+    compileSdk 33  // Updated to a more recent SDK version
+    
     defaultConfig {
-        minSdkVersion 21
+        minSdk 21
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
-    lintOptions {
+    
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    
+    lint {
         disable 'InvalidPackage'
     }
 }
 
+// Dependencies section
 dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    // Specifically include the printer SDK jar
     implementation files('libs/gprintersdkv2.jar')
+}
+
+// Repository configurations
+repositories {
+    google()
+    mavenCentral()  // jcenter() is deprecated, use mavenCentral() instead
 }
